@@ -7,6 +7,7 @@ module.exports = {
   defaultNetwork: "testnet",
   networks: {
     hardhat: {
+      chainId: 1337
     },
     testnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
