@@ -39,27 +39,44 @@ export default function OpenBox() {
         const connection = await web3Modal.connect()
         const provider = new ethers.providers.Web3Provider(connection)
         const signer = provider.getSigner()
+        const ownerAddress = signer.getAddress()
+        const amount = ethers.utils.parseUnits('10000000000', 'ether')
 
-        const amount = ethers.utils.parseUnits('1000000', 'ether')
-
-        /* next, create the item */
+        // /* next, create the item */
         let FTKContract = new ethers.Contract(ftkaddress, FTK.abi, signer)
-        let approve = FTKContract.approve(nftaddress, amount)
-        // let contract = new ethers.Contract(ftkaddress, NFT.abi, signer)
-        // let transaction = await contract.createToken(url)
-        // let tx = await transaction.wait()
-        // let event = tx.events[0]
-        // let value = event.args[2]
-        // let tokenId = value.toNumber()
+        let allowance = await FTKContract.allowance(ownerAddress, nftaddress)
+        let erc20balance = await FTKContract.balanceOf(ownerAddress)
+        let numberAllowance = ethers.utils.formatEther(allowance)
+        console.log('numberAllowance', numberAllowance)
+        console.log('erc20balance', ethers.utils.formatEther(erc20balance))
+        if (numberAllowance == 0.0) {
+            let approve = await FTKContract.approve(nftaddress, amount)
+        } else {
+            const url = {
+                name: 'Test',
+                description: 'Test',
+                image: 'https://assets.thetanarena.com/skin/full/21000.png'
+            }
+            let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
+            let amount = ethers.utils.parseUnits('1000', 'ether')
+            let transaction = await contract.createToken(url, 0)
+            let tx = await transaction.wait()
+            let event = tx.events[0]
+            console.log(tx)
+            console.log('========================')
+            console.log(event)
+            // let value = event.args[2]
+            // let tokenId = value.toNumber()
 
-        // /* then list the item for sale on the marketplace */
-        // contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
-        // let listingPrice = await contract.getListingPrice()
-        // listingPrice = listingPrice.toString()
+            /* then list the item for sale on the marketplace */
+            // contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
+            // let listingPrice = await contract.getListingPrice()
+            // listingPrice = listingPrice.toString()
 
-        // transaction = await contract.createMarketItem(nftaddress, tokenId, price, { value: listingPrice })
-        // await transaction.wait()
-        // router.push('/')
+            // transaction = await contract.createMarketItem(nftaddress, tokenId, price, { value: listingPrice })
+            // await transaction.wait()
+            router.push('/')
+        }
     }
 
     return (
