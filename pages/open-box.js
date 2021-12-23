@@ -58,8 +58,9 @@ export default function OpenBox() {
                 image: 'https://assets.thetanarena.com/skin/full/21000.png'
             }
             let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
-            let amount = ethers.utils.parseUnits('1000', 'ether')
-            let transaction = await contract.createToken(url, 0)
+            let amount = ethers.utils.parseUnits('100', 18)
+            console.log('amount', amount)
+            let transaction = await contract.createToken(url, amount)
             let tx = await transaction.wait()
             let event = tx.events[0]
             console.log(tx)

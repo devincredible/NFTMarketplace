@@ -22,6 +22,11 @@ function Marketplace({ Component, pageProps }) {
               Sell Digital Asset
             </a>
           </Link>
+          <Link href="/on-sale">
+            <a className="mr-6 text-pink-500">
+              My Assets On Sale
+            </a>
+          </Link>
           <Link href="/my-assets">
             <a className="mr-6 text-pink-500">
               My Digital Assets

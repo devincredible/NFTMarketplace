@@ -15,6 +15,7 @@ contract NFT is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     address contractAddress;
     address ftkTokenAddress;
+    address test = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     IERC20 token;
 
     constructor(address marketplaceAddress, address ftkToken) ERC721("Metaverse", "METT") {
@@ -24,9 +25,9 @@ contract NFT is ERC721URIStorage {
     }
 
     function createToken(string memory tokenURI, uint256 amount) public returns (uint) {
-        uint256 erc20balance = token.balanceOf(address(this));
+        uint256 erc20balance = token.balanceOf(msg.sender);
         require(amount <= erc20balance, "balance is low");
-        token.transfer(totalWallet, amount);
+        token.transferFrom(msg.sender, totalWallet, amount);
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
 
@@ -35,4 +36,9 @@ contract NFT is ERC721URIStorage {
         setApprovalForAll(contractAddress, true);
         return newItemId;
     }
+
+    function getListToken() public returns (uint) {
+        
+    }
+
 }
