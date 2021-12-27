@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
 import { useRouter } from 'next/router'
 import Web3Modal from 'web3modal'
+import { ToastProvider, useToasts } from 'react-toast-notifications';
 
 const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
@@ -15,6 +16,9 @@ import FTK from '../artifacts/contracts/FTK.sol/FTK.json'
 import Market from '../artifacts/contracts/Market.sol/NFTMarket.json'
 
 export default function OpenBox() {
+
+    const { addToast } = useToasts();
+
     const [fileUrl, setFileUrl] = useState(null)
     const [formInput, updateFormInput] = useState({ price: '', name: '', description: '' })
     const router = useRouter()
@@ -51,6 +55,8 @@ export default function OpenBox() {
         console.log('erc20balance', ethers.utils.formatEther(erc20balance))
         if (numberAllowance == 0.0) {
             let approve = await FTKContract.approve(nftaddress, amount)
+            console.log(`approve`, approve)
+            addToast('Aprove Successfully', { appearance: 'success' });
         } else {
             const url = {
                 name: 'Test',
@@ -62,12 +68,14 @@ export default function OpenBox() {
             console.log('amount', amount)
             let transaction = await contract.createToken(url, amount)
             let tx = await transaction.wait()
-            let event = tx.events[0]
+            let event = tx.events[2]
             console.log(tx)
             console.log('========================')
             console.log(event)
-            // let value = event.args[2]
-            // let tokenId = value.toNumber()
+            let value = event.args[2]
+            let tokenId = value.toNumber()
+
+            addToast('Open box Successfully', { appearance: 'success' });
 
             /* then list the item for sale on the marketplace */
             // contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)

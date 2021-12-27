@@ -18,27 +18,57 @@ contract NFT is ERC721URIStorage {
     address test = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     IERC20 token;
 
-    constructor(address marketplaceAddress, address ftkToken) ERC721("Metaverse", "METT") {
+    constructor(address marketplaceAddress, address ftkToken)
+        ERC721("Metaverse", "METT")
+    {
         contractAddress = marketplaceAddress;
         ftkTokenAddress = ftkToken;
         token = IERC20(ftkToken);
     }
 
-    function createToken(string memory tokenURI, uint256 amount) public returns (uint) {
+    struct NFTItem {
+        uint256 tokenId;
+        address payable owner;
+    }
+
+    mapping(uint256 => NFTItem) private nftItem;
+
+    function createToken(string memory tokenURI, uint256 amount)
+        public
+        returns (uint256)
+    {
         uint256 erc20balance = token.balanceOf(msg.sender);
         require(amount <= erc20balance, "balance is low");
         token.transferFrom(msg.sender, totalWallet, amount);
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
 
+        nftItem[newItemId] = NFTItem(newItemId, payable(msg.sender));
         _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, tokenURI);
         setApprovalForAll(contractAddress, true);
         return newItemId;
     }
 
-    function getListToken() public returns (uint) {
-        
-    }
+    function getOwnerNFT() public view returns (NFTItem[] memory) {
+        uint256 currentTokenID = _tokenIds.current();
+        uint256 itemCount = 0;
+        uint256 currentIndex = 0;
 
+        for (uint256 i = 0; i < currentTokenID; i++) {
+            if (nftItem[i + 1].owner == msg.sender) {
+                itemCount += 1;
+            }
+        }
+        NFTItem[] memory items = new NFTItem[](itemCount);
+
+        for (uint256 i = 0; i < currentTokenID; i++) {
+            if (nftItem[i + 1].owner == msg.sender) {
+                items[currentIndex] = nftItem[i + 1];
+                currentIndex += 1;
+            }
+        }
+
+        return items;
+    }
 }

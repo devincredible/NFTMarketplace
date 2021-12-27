@@ -24,11 +24,22 @@ export default function MyAssets() {
     const connection = await web3Modal.connect()
     const provider = new ethers.providers.Web3Provider(connection)
     const signer = provider.getSigner()
-      
+
+    const nftContract = new ethers.Contract(nftaddress, NFT.abi, signer)
     const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
+    const owner = signer.getAddress()
+    const itemss = await nftContract.getOwnerNFT()
+    if (itemss.length > 0) {
+      for (let i in itemss) {
+        // console.log(`itemss[i]`, itemss[i][0].toString())
+        const tokenURI = await nftContract.tokenURI(itemss[i][0].toString())
+        console.log(`tokenURI`, tokenURI)
+      }
+    }
+    console.log(`itemss`, itemss)
     const data = await marketContract.fetchMyNFTs()
-    
+
     const items = await Promise.all(data.map(async i => {
       const tokenUri = await tokenContract.tokenURI(i.tokenId)
       const meta = await axios.get(tokenUri)
@@ -43,7 +54,7 @@ export default function MyAssets() {
       return item
     }))
     setNfts(items)
-    setLoadingState('loaded') 
+    setLoadingState('loaded')
   }
   if (loadingState === 'loaded' && !nfts.length) return (<h1 className="py-10 px-20 text-3xl">No assets owned</h1>)
   return (
