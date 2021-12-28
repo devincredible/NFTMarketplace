@@ -21,22 +21,17 @@ function Marketplace({ Component, pageProps }) {
             </Link>
             <Link href="/create-item">
               <a className="mr-6 text-pink-500">
-                Sell Digital Asset
+                Sell Asset
               </a>
             </Link>
             <Link href="/on-sale">
               <a className="mr-6 text-pink-500">
-                My Assets On Sale
+                On Sale
               </a>
             </Link>
             <Link href="/my-assets">
               <a className="mr-6 text-pink-500">
-                My Digital Assets
-              </a>
-            </Link>
-            <Link href="/creator-dashboard">
-              <a className="mr-6 text-pink-500">
-                Creator Dashboard
+                My Assets
               </a>
             </Link>
           </div>

@@ -15,7 +15,6 @@ contract NFT is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     address contractAddress;
     address ftkTokenAddress;
-    address test = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     IERC20 token;
 
     constructor(address marketplaceAddress, address ftkToken)
@@ -33,7 +32,42 @@ contract NFT is ERC721URIStorage {
 
     mapping(uint256 => NFTItem) private nftItem;
 
-    function createToken(string memory tokenURI, uint256 amount)
+    // Optional mapping for token URIs
+    mapping(uint256 => string) private _tokenURIs;
+
+    // Base URI
+    string private _baseURIextended;
+
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI)
+        internal
+        virtual
+        override
+    {
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI set of nonexistent token"
+        );
+        _tokenURIs[tokenId] = _tokenURI;
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI query for nonexistent token"
+        );
+
+        string memory _tokenURI = _tokenURIs[tokenId];
+
+        return _tokenURI;
+    }
+
+    function createToken(string memory tokenNFTURI, uint256 amount)
         public
         returns (uint256)
     {
@@ -45,7 +79,7 @@ contract NFT is ERC721URIStorage {
 
         nftItem[newItemId] = NFTItem(newItemId, payable(msg.sender));
         _mint(msg.sender, newItemId);
-        _setTokenURI(newItemId, tokenURI);
+        _setTokenURI(newItemId, tokenNFTURI);
         setApprovalForAll(contractAddress, true);
         return newItemId;
     }

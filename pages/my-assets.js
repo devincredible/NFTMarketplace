@@ -2,6 +2,7 @@ import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Web3Modal from "web3modal"
+import { useRouter } from 'next/router'
 
 import {
   nftmarketaddress, nftaddress
@@ -11,6 +12,9 @@ import Market from '../artifacts/contracts/Market.sol/NFTMarket.json'
 import NFT from '../artifacts/contracts/NFT.sol/NFT.json'
 
 export default function MyAssets() {
+
+  const router = useRouter()
+
   const [nfts, setNfts] = useState([])
   const [loadingState, setLoadingState] = useState('not-loaded')
   useEffect(() => {
@@ -25,30 +29,17 @@ export default function MyAssets() {
     const provider = new ethers.providers.Web3Provider(connection)
     const signer = provider.getSigner()
 
-    const nftContract = new ethers.Contract(nftaddress, NFT.abi, signer)
-    const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
     const owner = signer.getAddress()
-    const itemss = await nftContract.getOwnerNFT()
-    if (itemss.length > 0) {
-      for (let i in itemss) {
-        // console.log(`itemss[i]`, itemss[i][0].toString())
-        const tokenURI = await nftContract.tokenURI(itemss[i][0].toString())
-        console.log(`tokenURI`, tokenURI)
-      }
-    }
-    console.log(`itemss`, itemss)
-    const data = await marketContract.fetchMyNFTs()
+    const data = await tokenContract.getOwnerNFT()
 
     const items = await Promise.all(data.map(async i => {
-      const tokenUri = await tokenContract.tokenURI(i.tokenId)
+      const tokenUri = await tokenContract.tokenURI(i[0])
       const meta = await axios.get(tokenUri)
-      let price = ethers.utils.formatUnits(i.price.toString(), 'ether')
       let item = {
-        price,
-        tokenId: i.tokenId.toNumber(),
-        seller: i.seller,
-        owner: i.owner,
+        tokenId: i[0],
+        name: meta.data.name,
+        description: meta.data.description,
         image: meta.data.image,
       }
       return item
@@ -56,6 +47,11 @@ export default function MyAssets() {
     setNfts(items)
     setLoadingState('loaded')
   }
+
+  const sellNFT = (nft) => {
+    router.push(`/sell-item?tokenId=${nft.tokenId}`)
+  }
+
   if (loadingState === 'loaded' && !nfts.length) return (<h1 className="py-10 px-20 text-3xl">No assets owned</h1>)
   return (
     <div className="flex justify-center">
@@ -63,10 +59,11 @@ export default function MyAssets() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
           {
             nfts.map((nft, i) => (
-              <div key={i} className="border shadow rounded-xl overflow-hidden">
+              <div key={i} className="border shadow rounded-xl overflow-hidden" onClick={() => sellNFT(nft)}>
                 <img src={nft.image} className="rounded" />
                 <div className="p-4 bg-black">
-                  <p className="text-2xl font-bold text-white">Price - {nft.price} Eth</p>
+                  <p className="text-2xl font-bold text-white">{nft.name}</p>
+                  <p className="text-2xl font-bold text-white">{nft.description}</p>
                 </div>
               </div>
             ))

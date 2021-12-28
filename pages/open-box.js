@@ -19,25 +19,8 @@ export default function OpenBox() {
 
     const { addToast } = useToasts();
 
-    const [fileUrl, setFileUrl] = useState(null)
-    const [formInput, updateFormInput] = useState({ price: '', name: '', description: '' })
     const router = useRouter()
 
-    async function onChange(e) {
-        const file = e.target.files[0]
-        try {
-            const added = await client.add(
-                file,
-                {
-                    progress: (prog) => console.log(`received: ${prog}`)
-                }
-            )
-            const url = `https://ipfs.infura.io/ipfs/${added.path}`
-            setFileUrl(url)
-        } catch (error) {
-            console.log('Error uploading file: ', error)
-        }
-    }
     async function openBox() {
         const web3Modal = new Web3Modal()
         const connection = await web3Modal.connect()
@@ -49,43 +32,45 @@ export default function OpenBox() {
         // /* next, create the item */
         let FTKContract = new ethers.Contract(ftkaddress, FTK.abi, signer)
         let allowance = await FTKContract.allowance(ownerAddress, nftaddress)
-        let erc20balance = await FTKContract.balanceOf(ownerAddress)
         let numberAllowance = ethers.utils.formatEther(allowance)
-        console.log('numberAllowance', numberAllowance)
-        console.log('erc20balance', ethers.utils.formatEther(erc20balance))
         if (numberAllowance == 0.0) {
             let approve = await FTKContract.approve(nftaddress, amount)
             console.log(`approve`, approve)
             addToast('Aprove Successfully', { appearance: 'success' });
         } else {
-            const url = {
+            const data = {
                 name: 'Test',
                 description: 'Test',
                 image: 'https://assets.thetanarena.com/skin/full/21000.png'
             }
-            let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
-            let amount = ethers.utils.parseUnits('100', 18)
-            console.log('amount', amount)
-            let transaction = await contract.createToken(url, amount)
-            let tx = await transaction.wait()
-            let event = tx.events[2]
-            console.log(tx)
-            console.log('========================')
-            console.log(event)
-            let value = event.args[2]
-            let tokenId = value.toNumber()
-
-            addToast('Open box Successfully', { appearance: 'success' });
-
-            /* then list the item for sale on the marketplace */
-            // contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
-            // let listingPrice = await contract.getListingPrice()
-            // listingPrice = listingPrice.toString()
-
-            // transaction = await contract.createMarketItem(nftaddress, tokenId, price, { value: listingPrice })
-            // await transaction.wait()
-            router.push('/')
+            const added = await client.add(JSON.stringify(data))
+            const url = `https://ipfs.infura.io/ipfs/${added.path}`
+            createToken(url, signer)
         }
+    }
+
+    const createToken = async (url, signer) => {
+        let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
+        let amount = ethers.utils.parseUnits('100', 18)
+        let transaction = await contract.createToken(url, amount)
+        let tx = await transaction.wait()
+        let event = tx.events[2]
+        console.log(tx)
+        console.log('========================')
+        console.log(event)
+        let value = event.args[2]
+        let tokenId = value.toNumber()
+
+        addToast('Open box Successfully', { appearance: 'success' });
+
+        /* then list the item for sale on the marketplace */
+        // contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
+        // let listingPrice = await contract.getListingPrice()
+        // listingPrice = listingPrice.toString()
+
+        // transaction = await contract.createMarketItem(nftaddress, tokenId, price, { value: listingPrice })
+        // await transaction.wait()
+        router.push('/my-assets')
     }
 
     return (
