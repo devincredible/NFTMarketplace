@@ -62,6 +62,7 @@ const SellItem = (props) => {
 
     let transaction = await contract.createMarketItem(nftaddress, tokenId, price)
     await transaction.wait()
+    router.push('/on-sale')
   }
 
   return (

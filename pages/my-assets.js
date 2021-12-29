@@ -32,18 +32,22 @@ export default function MyAssets() {
     const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
     const owner = signer.getAddress()
     const data = await tokenContract.getOwnerNFT()
+    const nftBalance = await tokenContract.balanceOf(owner)
 
-    const items = await Promise.all(data.map(async i => {
-      const tokenUri = await tokenContract.tokenURI(i[0])
+    let items = []
+
+    for (let i = 0; i < nftBalance.toString(); i++) {
+      const tokenId = await tokenContract.tokenOfOwnerByIndex(owner, i)
+      const tokenUri = await tokenContract.tokenURI(tokenId)
       const meta = await axios.get(tokenUri)
       let item = {
-        tokenId: i[0],
+        tokenId: tokenId,
         name: meta.data.name,
         description: meta.data.description,
         image: meta.data.image,
       }
-      return item
-    }))
+      items.push(item)
+    }
     setNfts(items)
     setLoadingState('loaded')
   }
@@ -59,8 +63,11 @@ export default function MyAssets() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
           {
             nfts.map((nft, i) => (
-              <div key={i} className="border shadow rounded-xl overflow-hidden" onClick={() => sellNFT(nft)}>
-                <img src={nft.image} className="rounded" />
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column'
+              }} key={i} className="border shadow rounded-xl overflow-hidden" onClick={() => sellNFT(nft)}>
+                <img src={nft.image} className="rounded" style={{ flexGrow: 1, objectFit: 'contain' }} />
                 <div className="p-4 bg-black">
                   <p className="text-2xl font-bold text-white">{nft.name}</p>
                   <p className="text-2xl font-bold text-white">{nft.description}</p>

@@ -5,12 +5,13 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 import "hardhat/console.sol";
 
 address constant totalWallet = 0x09395E698CC8B90D6b7D882919E15085049cFbaE;
 
-contract NFT is ERC721URIStorage {
+contract NFT is ERC721URIStorage, ERC721Enumerable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     address contractAddress;
@@ -38,6 +39,30 @@ contract NFT is ERC721URIStorage {
     // Base URI
     string private _baseURIextended;
 
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function _burn(uint256 tokenId)
+        internal
+        override(ERC721, ERC721URIStorage)
+    {
+        super._burn(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
     function _setTokenURI(uint256 tokenId, string memory _tokenURI)
         internal
         virtual
@@ -54,7 +79,7 @@ contract NFT is ERC721URIStorage {
         public
         view
         virtual
-        override
+        override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
         require(
